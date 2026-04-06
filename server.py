@@ -4,7 +4,7 @@ import math
 import random
 import datetime
 
-mcp = FastMCP("My MCP Server")
+mcp = FastMCP("My MCP Server", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), allowed_hosts=["*"])
 
 # ─── CALCULATOR TOOLS ───────────────────────────────────────────────
 
