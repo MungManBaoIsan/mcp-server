@@ -4,7 +4,14 @@ import random
 import datetime
 from mcp.server.fastmcp import FastMCP
 
-os.environ["MCP_ALLOWED_HOSTS"] = "*"
+from mcp.server.transport_security import TransportSecuritySettings
+
+mcp = FastMCP(
+    "My MCP Server",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=False
+    )
+)
 
 mcp = FastMCP("My MCP Server")
 
