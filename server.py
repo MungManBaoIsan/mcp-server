@@ -4,7 +4,7 @@ import math
 import random
 import datetime
 
-mcp = FastMCP("My MCP Server", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), allowed_hosts=["*"])
+mcp = FastMCP("My MCP Server")
 
 # ─── CALCULATOR TOOLS ───────────────────────────────────────────────
 
@@ -153,4 +153,4 @@ def pick_random(options: str) -> str:
 if __name__ == "__main__":
     import uvicorn
     app = mcp.streamable_http_app()
-    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), forwarded_allow_ips="*")
