@@ -2,6 +2,7 @@ import os
 import math
 import random
 import datetime
+import httpx
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
 from starlette.types import ASGIApp, Receive, Scope, Send
@@ -40,6 +41,55 @@ mcp = FastMCP(
 def flip_coin() -> str:
     """Flip a coin."""
     return f"🪙 {random.choice(['Heads', 'Tails'])}!"
+
+@mcp.tool()
+async def brave_search(query: str, count: int = 5) -> str:
+    """
+    Search the web using Brave Search.
+    Args:
+        query: The search query
+        count: Number of results to return (default 5)
+    """
+    api_key = os.environ.get("BRAVE_API_KEY", "")
+    if not api_key:
+        return "Error: BRAVE_API_KEY not set."
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            "https://api.search.brave.com/res/v1/web/search",
+            headers={"Accept": "application/json", "X-Subscription-Token": api_key},
+            params={"q": query, "count": count}
+        )
+        data = response.json()
+        results = data.get("web", {}).get("results", [])
+        if not results:
+            return "No results found."
+        output = []
+        for r in results:
+            output.append(f"**{r['title']}**\n{r['url']}\n{r.get('description', '')}")
+        return "\n\n".join(output)
+
+
+@mcp.tool()
+async def firecrawl_scrape(url: str) -> str:
+    """
+    Scrape and extract clean text content from any webpage using Firecrawl.
+    Args:
+        url: The URL to scrape
+    """
+    api_key = os.environ.get("FIRECRAWL_API_KEY", "")
+    if not api_key:
+        return "Error: FIRECRAWL_API_KEY not set."
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            "https://api.firecrawl.dev/v1/scrape",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json={"url": url, "formats": ["markdown"]}
+        )
+        data = response.json()
+        if not data.get("success"):
+            return f"Error scraping URL: {data.get('error', 'Unknown error')}"
+        content = data.get("data", {}).get("markdown", "")
+        return content[:3000] + "..." if len(content) > 3000 else content
 
 if __name__ == "__main__":
     import uvicorn
